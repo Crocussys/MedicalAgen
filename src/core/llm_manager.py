@@ -198,6 +198,86 @@ class LLMManager:
         except Exception as e:
             logger.error(f"Error extracting command: {e}")
             return "general"
+        
+    async def extract_anamnesis_fields(
+        self,
+        text: str,
+        current_question: str = ""
+    ) -> dict:
+        prompt = f"""
+Извлеки данные анамнеза из текста пациента.
+
+Верни только валидный JSON.
+Не добавляй пояснений.
+Не используй английский язык.
+Если поле не указано в тексте, ставь null.
+
+Поля:
+- main_complaint
+- duration
+- severity
+- temperature
+- allergies
+- medications
+- chronic_diseases
+- pain_location
+- pain_character
+- nausea
+- vomiting
+- stool
+- movement_pain
+- appetite
+
+Текущий вопрос, на который отвечает пациент:
+{current_question}
+
+Текст пациента:
+{text}
+
+Пример ответа:
+{{
+  "main_complaint": null,
+  "duration": null,
+  "severity": null,
+  "temperature": null,
+  "allergies": null,
+  "medications": null,
+  "chronic_diseases": null,
+  "pain_location": null,
+  "pain_character": null,
+  "nausea": null,
+  "vomiting": null,
+  "stool": null,
+  "movement_pain": null,
+  "appetite": null
+}}
+
+JSON:
+"""
+
+        try:
+            response = await self.client.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "temperature": 0.1,
+                }
+            )
+
+            if response.status_code == 200:
+                text = response.json().get("response", "")
+                start = text.find("{")
+                end = text.rfind("}") + 1
+                if start >= 0 and end > start:
+                    return json.loads(text[start:end])
+
+            return {}
+
+        except Exception as e:
+            logger.error(f"Error extracting anamnesis fields: {e}")
+            return {}
     
     def _build_prompt(
         self,

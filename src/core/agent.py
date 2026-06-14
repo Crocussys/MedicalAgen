@@ -15,6 +15,7 @@ from config import settings
 from .llm_manager import LLMManager
 from .memory import ConversationMemory
 from .medical_logic import MedicalLogic
+from medical.anamnesis import AnamnesisManager
 
 
 class AgentRole(str, Enum):
@@ -46,6 +47,7 @@ class MedicalAgent:
             self.llm_manager = LLMManager()
             self.memory = ConversationMemory()
             self.medical_logic = MedicalLogic()
+            self.anamnesis = AnamnesisManager()
             
             # Текущий сеанс
             self.current_session = {
@@ -76,20 +78,22 @@ class MedicalAgent:
         if not self.initialized:
             return "Ошибка: Агент не инициализирован"
         
-        logger.info(f"👤 Пациент: {message}")
-        
-        # Добавляем в память
-        self.memory.add_patient_message(message)
-        
-        # Обрабатываем как сбор анамнеза
-        response = await self._collect_anamnesis(message)
-        
-        # Добавляем ответ в память
-        self.memory.add_agent_message(response, role="interviewer")
-        
-        logger.info(f"🤖 Агент: {response}")
-        
-        return response
+        extracted = await self.llm_manager.extract_anamnesis_fields(message)
+
+        logger.info(f"EXTRACTED: {extracted}")
+
+        if not any(v is not None for v in extracted.values()):
+            field = self.anamnesis.get_next_field()
+
+            if field:
+                extracted = {field: message}
+
+        self.anamnesis.update(extracted)
+
+        logger.info(f"ANAMNESIS: {self.anamnesis.to_dict()}")
+
+        next_question = self.anamnesis.get_next_question()
+        return next_question
     
     async def process_doctor_message(self, message: str) -> str:
         """
@@ -108,9 +112,27 @@ class MedicalAgent:
         
         # Добавляем в память
         self.memory.add_doctor_message(message)
-        
-        # Обрабатываем команду врача
-        response = await self._process_doctor_command(message)
+
+        if "свод" in message.lower() or "анамнез" in message.lower():
+            response = json.dumps(
+                {
+                    "anamnesis": self.anamnesis.to_dict()
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        elif "не хватает" in message.lower():
+            missing = self.anamnesis.get_missing_fields()
+            response = json.dumps(
+                {
+                    "missing_fields": missing
+                },
+                ensure_ascii=False,
+                indent=2
+            )
+        else:
+            # Обрабатываем команду врача
+            response = await self._process_doctor_command(message)
         
         logger.info(f"🤖 Агент: {response}")
         
