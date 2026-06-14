@@ -1,5 +1,5 @@
 ﻿"""
-RAG СЃРёСЃС‚РµРјР° РґР»СЏ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ Р°РіРµРЅС‚Р°
+RAG система для медицинского агента
 Retrieval-Augmented Generation System
 """
 
@@ -15,7 +15,7 @@ from config import settings
 
 @dataclass
 class Document:
-    """Р”РѕРєСѓРјРµРЅС‚ РІ Р±Р°Р·Рµ Р·РЅР°РЅРёР№"""
+    """Документ в базе знаний"""
     id: str
     title: str
     content: str
@@ -26,26 +26,26 @@ class Document:
 
 class MedicalKnowledgeBase:
     """
-    РњРµРґРёС†РёРЅСЃРєР°СЏ Р±Р°Р·Р° Р·РЅР°РЅРёР№ РґР»СЏ RAG
+    Медицинская база знаний для RAG
     """
     
     def __init__(self):
-        """РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р±Р°Р·С‹ Р·РЅР°РЅРёР№"""
+        """Инициализация базы знаний"""
         self.documents: List[Document] = []
         self.vector_store = {}
         self.loaded = False
         
-        logger.info("рџ“љ РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјРµРґРёС†РёРЅСЃРєРѕР№ Р±Р°Р·С‹ Р·РЅР°РЅРёР№")
+        logger.info("📚 Инициализация медицинской базы знаний")
     
     def load_from_file(self, filepath: str) -> bool:
         """
-        Р—Р°РіСЂСѓР·РёС‚СЊ Р±Р°Р·Сѓ Р·РЅР°РЅРёР№ РёР· С„Р°Р№Р»Р°
+        Загрузить базу знаний из файла
         
         Args:
-            filepath: РџСѓС‚СЊ Рє С„Р°Р№Р»Сѓ Р±Р°Р·С‹ Р·РЅР°РЅРёР№
+            filepath: Путь к файлу базы знаний
             
         Returns:
-            True РµСЃР»Рё СѓСЃРїРµС€РЅРѕ
+            True если успешно
         """
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -56,15 +56,15 @@ class MedicalKnowledgeBase:
                 self.documents.append(doc)
             
             self.loaded = True
-            logger.info(f"вњ“ Р—Р°РіСЂСѓР¶РµРЅРѕ {len(self.documents)} РґРѕРєСѓРјРµРЅС‚РѕРІ")
+            logger.info(f"✓ Загружено {len(self.documents)} документов")
             return True
             
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Р‘Р—: {e}")
+            logger.error(f"✗ Ошибка загрузки БЗ: {e}")
             return False
     
     def add_document(self, doc: Document):
-        """Р”РѕР±Р°РІРёС‚СЊ РґРѕРєСѓРјРµРЅС‚ РІ Р‘Р—"""
+        """Добавить документ в БЗ"""
         self.documents.append(doc)
     
     def search(
@@ -74,36 +74,36 @@ class MedicalKnowledgeBase:
         category: Optional[str] = None
     ) -> List[Document]:
         """
-        РџРѕРёСЃРє РґРѕРєСѓРјРµРЅС‚РѕРІ РїРѕ Р·Р°РїСЂРѕСЃСѓ
+        Поиск документов по запросу
         
         Args:
-            query: РџРѕРёСЃРєРѕРІС‹Р№ Р·Р°РїСЂРѕСЃ
-            top_k: РљРѕР»РёС‡РµСЃС‚РІРѕ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
-            category: Р¤РёР»СЊС‚СЂ РїРѕ РєР°С‚РµРіРѕСЂРёРё
+            query: Поисковый запрос
+            top_k: Количество результатов
+            category: Фильтр по категории
             
         Returns:
-            РЎРїРёСЃРѕРє РЅР°Р№РґРµРЅРЅС‹С… РґРѕРєСѓРјРµРЅС‚РѕРІ
+            Список найденных документов
         """
-        # Р¤РёР»СЊС‚СЂСѓРµРј РїРѕ РєР°С‚РµРіРѕСЂРёРё РµСЃР»Рё РЅСѓР¶РЅРѕ
+        # Фильтруем по категории если нужно
         candidates = self.documents
         if category:
             candidates = [d for d in candidates if d.category == category]
         
-        # РџСЂРѕСЃС‚РѕР№ С‚РµРєСЃС‚РѕРІС‹Р№ РїРѕРёСЃРє (РІ СЂРµР°Р»СЊРЅРѕР№ СЃРёСЃС‚РµРјРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ СЃРµРјР°РЅС‚РёС‡РµСЃРєРёР№ РїРѕРёСЃРє)
+        # Простой текстовый поиск (в реальной системе используется семантический поиск)
         scored_docs = []
         query_lower = query.lower()
         
         for doc in candidates:
             score = 0
-            # РС‰РµРј СЃРѕРІРїР°РґРµРЅРёСЏ РІ Р·Р°РіРѕР»РѕРІРєРµ
+            # Ищем совпадения в заголовке
             if query_lower in doc.title.lower():
                 score += 2.0
             
-            # РС‰РµРј СЃРѕРІРїР°РґРµРЅРёСЏ РІ РєРѕРЅС‚РµРЅС‚Рµ
+            # Ищем совпадения в контенте
             if query_lower in doc.content.lower():
                 score += 1.0
             
-            # РС‰РµРј СЃРѕРІРїР°РґРµРЅРёСЏ РІ РјРµС‚Р°РґР°РЅРЅС‹С…
+            # Ищем совпадения в метаданных
             for key, value in doc.metadata.items():
                 if isinstance(value, str) and query_lower in value.lower():
                     score += 0.5
@@ -111,14 +111,14 @@ class MedicalKnowledgeBase:
             if score > 0:
                 scored_docs.append((doc, score))
         
-        # РЎРѕСЂС‚РёСЂСѓРµРј РїРѕ СЂРµР»РµРІР°РЅС‚РЅРѕСЃС‚Рё
+        # Сортируем по релевантности
         scored_docs.sort(key=lambda x: x[1], reverse=True)
         
-        # Р’РѕР·РІСЂР°С‰Р°РµРј top_k СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ
+        # Возвращаем top_k результатов
         return [doc for doc, score in scored_docs[:top_k]]
     
     def get_context_for_query(self, query: str, top_k: int = 3) -> str:
-        """РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС‚РµРєСЃС‚ РґР»СЏ LLM РїРѕ Р·Р°РїСЂРѕСЃСѓ"""
+        """Получить контекст для LLM по запросу"""
         docs = self.search(query, top_k=top_k)
         
         if not docs:
@@ -127,9 +127,9 @@ class MedicalKnowledgeBase:
         context_parts = []
         for doc in docs:
             part = f"""
-Р”РѕРєСѓРјРµРЅС‚: {doc.title}
-РљР°С‚РµРіРѕСЂРёСЏ: {doc.category}
-РЎРѕРґРµСЂР¶Р°РЅРёРµ: {doc.content[:500]}...
+Документ: {doc.title}
+Категория: {doc.category}
+Содержание: {doc.content[:500]}...
 """
             context_parts.append(part)
         
@@ -138,7 +138,7 @@ class MedicalKnowledgeBase:
 ".join(context_parts)
     
     def get_statistics(self) -> Dict[str, Any]:
-        """РџРѕР»СѓС‡РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ Р‘Р—"""
+        """Получить статистику БЗ"""
         categories = {}
         for doc in self.documents:
             if doc.category not in categories:
@@ -154,15 +154,15 @@ class MedicalKnowledgeBase:
 
 class RAGSystem:
     """
-    РЎРёСЃС‚РµРјР° Retrieval-Augmented Generation РґР»СЏ Р°РіРµРЅС‚Р°
+    Система Retrieval-Augmented Generation для агента
     """
     
     def __init__(self):
-        """РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ RAG СЃРёСЃС‚РµРјС‹"""
+        """Инициализация RAG системы"""
         self.knowledge_base = MedicalKnowledgeBase()
         self.cache = {}
         
-        logger.info("рџ”Ќ RAG СЃРёСЃС‚РµРјР° РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР°")
+        logger.info("🔍 RAG система инициализирована")
     
     async def augment_context(
         self,
@@ -170,16 +170,16 @@ class RAGSystem:
         base_context: str = ""
     ) -> str:
         """
-        РџРѕРїРѕР»РЅРёС‚СЊ РєРѕРЅС‚РµРєСЃС‚ РёРЅС„РѕСЂРјР°С†РёРµР№ РёР· Р‘Р—
+        Пополнить контекст информацией из БЗ
         
         Args:
-            query: Р—Р°РїСЂРѕСЃ
-            base_context: Р‘Р°Р·РѕРІС‹Р№ РєРѕРЅС‚РµРєСЃС‚
+            query: Запрос
+            base_context: Базовый контекст
             
         Returns:
-            Р Р°СЃС€РёСЂРµРЅРЅС‹Р№ РєРѕРЅС‚РµРєСЃС‚
+            Расширенный контекст
         """
-        # РС‰РµРј СЂРµР»РµРІР°РЅС‚РЅС‹Рµ РґРѕРєСѓРјРµРЅС‚С‹
+        # Ищем релевантные документы
         retrieved_context = self.knowledge_base.get_context_for_query(
             query,
             top_k=settings.top_k_results
@@ -188,16 +188,16 @@ class RAGSystem:
         if retrieved_context:
             return f"{base_context}\
 \
-рџ“љ Р РµР»РµРІР°РЅС‚РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ РёР· Р‘Р—:\
+📚 Релевантная информация из БЗ:\
 {retrieved_context}"
         else:
             return base_context
     
     def load_knowledge_base(self, filepath: str) -> bool:
-        """Р—Р°РіСЂСѓР·РёС‚СЊ Р±Р°Р·Сѓ Р·РЅР°РЅРёР№"""
+        """Загрузить базу знаний"""
         return self.knowledge_base.load_from_file(filepath)
     
     def get_kb_stats(self) -> Dict[str, Any]:
-        """РџРѕР»СѓС‡РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ Р‘Р—"""
+        """Получить статистику БЗ"""
         return self.knowledge_base.get_statistics()
 

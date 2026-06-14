@@ -1,5 +1,5 @@
 ﻿"""
-РђРЅРєРµС‚Р° РґР»СЏ СЃР±РѕСЂР° РёРЅС„РѕСЂРјР°С†РёРё Рѕ РїР°С†РёРµРЅС‚Рµ
+Анкета для сбора информации о пациенте
 Patient Questionnaire Module
 """
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 @dataclass
 class QuestionnaireAnswer:
-    """РћС‚РІРµС‚ РЅР° РІРѕРїСЂРѕСЃ Р°РЅРєРµС‚С‹"""
+    """Ответ на вопрос анкеты"""
     question_id: str
     question_text: str
     answer: str
@@ -20,15 +20,15 @@ class QuestionnaireAnswer:
 
 class Questionnaire:
     """
-    РЈРїСЂР°РІР»РµРЅРёРµ Р°РЅРєРµС‚РѕР№ РїР°С†РёРµРЅС‚Р°
+    Управление анкетой пациента
     """
     
-    def __init__(self, language: str = "uk"):
+    def __init__(self, language: str = "ru"):
         """
-        РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р°РЅРєРµС‚С‹
+        Инициализация анкеты
         
         Args:
-            language: РЇР·С‹Рє Р°РЅРєРµС‚С‹
+            language: Язык анкеты
         """
         self.language = language
         self.questions = self._load_questions()
@@ -36,13 +36,13 @@ class Questionnaire:
         self.current_question_index = 0
     
     def _load_questions(self) -> List[Dict[str, Any]]:
-        """Р—Р°РіСЂСѓР·РёС‚СЊ РІРѕРїСЂРѕСЃС‹ Р°РЅРєРµС‚С‹"""
+        """Загрузить вопросы анкеты"""
         questions = [
             {
                 "id": "age",
                 "text": {
-                    "uk": "РЎРєС–Р»СЊРєРё РІР°Рј СЂРѕРєС–РІ?",
-                    "ru": "РЎРєРѕР»СЊРєРѕ РІР°Рј Р»РµС‚?",
+                    "uk": "Скільки вам років?",
+                    "ru": "Сколько вам лет?",
                     "en": "How old are you?"
                 },
                 "type": "number",
@@ -52,8 +52,8 @@ class Questionnaire:
             {
                 "id": "gender",
                 "text": {
-                    "uk": "Р’Р°С€Р° СЃС‚Р°С‚СЊ?",
-                    "ru": "Р’Р°С€ РїРѕР»?",
+                    "uk": "Ваша стать?",
+                    "ru": "Ваш пол?",
                     "en": "Your gender?"
                 },
                 "type": "select",
@@ -64,8 +64,8 @@ class Questionnaire:
             {
                 "id": "main_complaint",
                 "text": {
-                    "uk": "РЇРєР° РІР°С€Р° РѕСЃРЅРѕРІРЅР° СЃРєР°СЂРіР°?",
-                    "ru": "РљР°РєР°СЏ РІР°С€Р° РѕСЃРЅРѕРІРЅР°СЏ Р¶Р°Р»РѕР±Р°?",
+                    "uk": "Яка ваша основна скарга?",
+                    "ru": "Какая ваша основная жалоба?",
                     "en": "What is your main complaint?"
                 },
                 "type": "text",
@@ -75,8 +75,8 @@ class Questionnaire:
             {
                 "id": "symptom_duration",
                 "text": {
-                    "uk": "РЇРє РґРѕРІРіРѕ Сѓ РІР°СЃ С†С– СЃРёРјРїС‚РѕРјРё?",
-                    "ru": "РљР°Рє РґРѕР»РіРѕ Сѓ РІР°СЃ СЌС‚Рё СЃРёРјРїС‚РѕРјС‹?",
+                    "uk": "Як довго у вас ці симптоми?",
+                    "ru": "Как долго у вас эти симптомы?",
                     "en": "How long have you had these symptoms?"
                 },
                 "type": "select",
@@ -87,8 +87,8 @@ class Questionnaire:
             {
                 "id": "temperature",
                 "text": {
-                    "uk": "Р§Рё РїС–РґРІРёС‰РµРЅР° РІР°С€Р° С‚РµРјРїРµСЂР°С‚СѓСЂР°?",
-                    "ru": "РџРѕРІС‹С€РµРЅР° Р»Рё РІР°С€Р° С‚РµРјРїРµСЂР°С‚СѓСЂР°?",
+                    "uk": "Чи підвищена ваша температура?",
+                    "ru": "Повышена ли ваша температура?",
                     "en": "Do you have a fever?"
                 },
                 "type": "select",
@@ -99,8 +99,8 @@ class Questionnaire:
             {
                 "id": "other_symptoms",
                 "text": {
-                    "uk": "РЇРєС– С‰Рµз—‡з‹ЂСѓ РІР°СЃ С”?",
-                    "ru": "РљР°РєРёРµ РµС‰Рµ СЃРёРјРїС‚РѕРјС‹ Сѓ РІР°СЃ РµСЃС‚СЊ?",
+                    "uk": "Які ще症狀у вас є?",
+                    "ru": "Какие еще симптомы у вас есть?",
                     "en": "What other symptoms do you have?"
                 },
                 "type": "text",
@@ -110,8 +110,8 @@ class Questionnaire:
             {
                 "id": "allergies",
                 "text": {
-                    "uk": "Р§Рё Сѓ РІР°СЃ С” Р°Р»РµСЂРіС–С—?",
-                    "ru": "Р•СЃС‚СЊ Р»Рё Сѓ РІР°СЃ Р°Р»Р»РµСЂРіРёРё?",
+                    "uk": "Чи у вас є алергії?",
+                    "ru": "Есть ли у вас аллергии?",
                     "en": "Do you have any allergies?"
                 },
                 "type": "text",
@@ -121,8 +121,8 @@ class Questionnaire:
             {
                 "id": "medications",
                 "text": {
-                    "uk": "РЇРєС– Р»С–РєРё РІРё РїСЂРёР№РјР°С”С‚Рµ?",
-                    "ru": "РљР°РєРёРµ Р»РµРєР°СЂСЃС‚РІР° РІС‹ РїСЂРёРЅРёРјР°РµС‚Рµ?",
+                    "uk": "Які ліки ви приймаєте?",
+                    "ru": "Какие лекарства вы принимаете?",
                     "en": "What medications are you taking?"
                 },
                 "type": "text",
@@ -132,8 +132,8 @@ class Questionnaire:
             {
                 "id": "chronic_diseases",
                 "text": {
-                    "uk": "Р§Рё Сѓ РІР°СЃ С” С…СЂРѕРЅС–С‡РЅС– Р·Р°С…РІРѕСЂСЋРІР°РЅРЅСЏ?",
-                    "ru": "Р•СЃС‚СЊ Р»Рё Сѓ РІР°СЃ С…СЂРѕРЅРёС‡РµСЃРєРёРµ Р·Р°Р±РѕР»РµРІР°РЅРёСЏ?",
+                    "uk": "Чи у вас є хронічні захворювання?",
+                    "ru": "Есть ли у вас хронические заболевания?",
                     "en": "Do you have any chronic diseases?"
                 },
                 "type": "text",
@@ -145,13 +145,13 @@ class Questionnaire:
         return questions
     
     def get_current_question(self) -> Optional[Dict[str, Any]]:
-        """РџРѕР»СѓС‡РёС‚СЊ С‚РµРєСѓС‰РёР№ РІРѕРїСЂРѕСЃ"""
+        """Получить текущий вопрос"""
         if self.current_question_index < len(self.questions):
             return self.questions[self.current_question_index]
         return None
     
     def get_question_text(self) -> str:
-        """РџРѕР»СѓС‡РёС‚СЊ С‚РµРєСЃС‚ С‚РµРєСѓС‰РµРіРѕ РІРѕРїСЂРѕСЃР°"""
+        """Получить текст текущего вопроса"""
         question = self.get_current_question()
         if question:
             return question["text"].get(self.language, question["text"].get("en"))
@@ -159,23 +159,23 @@ class Questionnaire:
     
     def answer_current_question(self, answer: str) -> bool:
         """
-        РћС‚РІРµС‚РёС‚СЊ РЅР° С‚РµРєСѓС‰РёР№ РІРѕРїСЂРѕСЃ
+        Ответить на текущий вопрос
         
         Args:
-            answer: РћС‚РІРµС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+            answer: Ответ пользователя
             
         Returns:
-            True РµСЃР»Рё СѓСЃРїРµС€РЅРѕ, False РµСЃР»Рё РѕС€РёР±РєР°
+            True если успешно, False если ошибка
         """
         question = self.get_current_question()
         if not question:
             return False
         
-        # Р’Р°Р»РёРґРёСЂСѓРµРј РѕС‚РІРµС‚
+        # Валидируем ответ
         if not self._validate_answer(question, answer):
             return False
         
-        # РЎРѕС…СЂР°РЅСЏРµРј РѕС‚РІРµС‚
+        # Сохраняем ответ
         self.answers.append(QuestionnaireAnswer(
             question_id=question["id"],
             question_text=self.get_question_text(),
@@ -187,7 +187,7 @@ class Questionnaire:
         return True
     
     def _validate_answer(self, question: Dict, answer: str) -> bool:
-        """Р’Р°Р»РёРґРёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚"""
+        """Валидировать ответ"""
         if not answer and question.get("required"):
             return False
         
@@ -204,18 +204,18 @@ class Questionnaire:
         return True
     
     def is_complete(self) -> bool:
-        """РџСЂРѕРІРµСЂРёС‚СЊ, Р·Р°РІРµСЂС€РµРЅР° Р»Рё Р°РЅРєРµС‚Р°"""
+        """Проверить, завершена ли анкета"""
         return self.current_question_index >= len(self.questions)
     
     def get_answers(self) -> Dict[str, Any]:
-        """РџРѕР»СѓС‡РёС‚СЊ РІСЃРµ РѕС‚РІРµС‚С‹"""
+        """Получить все ответы"""
         result = {}
         for answer in self.answers:
             result[answer.question_id] = answer.answer
         return result
     
     def get_answers_by_category(self) -> Dict[str, Dict[str, str]]:
-        """РџРѕР»СѓС‡РёС‚СЊ РѕС‚РІРµС‚С‹ РїРѕ РєР°С‚РµРіРѕСЂРёСЏРј"""
+        """Получить ответы по категориям"""
         result = {}
         for answer in self.answers:
             if answer.category not in result:
@@ -224,7 +224,7 @@ class Questionnaire:
         return result
     
     def get_patient_info(self) -> Dict[str, Any]:
-        """РџРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РїР°С†РёРµРЅС‚Рµ РёР· РѕС‚РІРµС‚РѕРІ"""
+        """Получить информацию о пациенте из ответов"""
         answers = self.get_answers()
         return {
             "age": int(answers.get("age", 0)),
@@ -239,12 +239,12 @@ class Questionnaire:
         }
     
     def reset(self):
-        """РЎР±СЂРѕСЃРёС‚СЊ Р°РЅРєРµС‚Сѓ"""
+        """Сбросить анкету"""
         self.answers = []
         self.current_question_index = 0
     
     def export_to_json(self) -> str:
-        """Р­РєСЃРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚С‹ РІ JSON"""
+        """Экспортировать ответы в JSON"""
         return json.dumps({
             "patient_info": self.get_patient_info(),
             "answers": [asdict(a) for a in self.answers]

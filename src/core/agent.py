@@ -1,5 +1,5 @@
 ﻿"""
-РћСЃРЅРѕРІРЅРѕР№ РєР»Р°СЃСЃ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ Р°РіРµРЅС‚Р°
+Основной класс медицинского агента
 Main Medical AI Agent Class
 """
 
@@ -18,36 +18,36 @@ from .medical_logic import MedicalLogic
 
 
 class AgentRole(str, Enum):
-    """Р РѕР»СЊ Р°РіРµРЅС‚Р° РІ СЂР°Р·РіРѕРІРѕСЂРµ"""
-    INTERVIEWER = "interviewer"  # РЎРѕР±РёСЂР°РµС‚ Р°РЅР°РјРЅРµР·
-    ASSISTANT = "assistant"      # РџРѕРјРѕРіР°РµС‚ РІСЂР°С‡Сѓ
-    TRANSLATOR = "translator"    # РџРµСЂРµРІРѕРґРёС‚ РјРµР¶РґСѓ РІСЂР°С‡РѕРј Рё РїР°С†РёРµРЅС‚РѕРј
+    """Роль агента в разговоре"""
+    INTERVIEWER = "interviewer"  # Собирает анамнез
+    ASSISTANT = "assistant"      # Помогает врачу
+    TRANSLATOR = "translator"    # Переводит между врачом и пациентом
 
 
 class MedicalAgent:
     """
-    РћСЃРЅРѕРІРЅРѕР№ РєР»Р°СЃСЃ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ РР-РїРѕРјРѕС‰РЅРёРєР°
+    Основной класс медицинского ИИ-помощника
     """
     
     def __init__(self, debug: bool = False):
         """
-        РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р°РіРµРЅС‚Р°
+        Инициализация агента
         
         Args:
-            debug: Р’РєР»СЋС‡РёС‚СЊ СЂРµР¶РёРј РѕС‚Р»Р°РґРєРё
+            debug: Включить режим отладки
         """
         self.debug = debug
         self.initialized = False
         
-        logger.info("рџљЂ РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ Р°РіРµРЅС‚Р°...")
+        logger.info("🚀 Инициализация медицинского агента...")
         
         try:
-            # РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РєРѕРјРїРѕРЅРµРЅС‚С‹
+            # Инициализируем компоненты
             self.llm_manager = LLMManager()
             self.memory = ConversationMemory()
             self.medical_logic = MedicalLogic()
             
-            # РўРµРєСѓС‰РёР№ СЃРµР°РЅСЃ
+            # Текущий сеанс
             self.current_session = {
                 "id": datetime.now().isoformat(),
                 "patient_info": {},
@@ -57,86 +57,86 @@ class MedicalAgent:
             }
             
             self.initialized = True
-            logger.info("вњ“ РђРіРµРЅС‚ СѓСЃРїРµС€РЅРѕ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ")
+            logger.info("✓ Агент успешно инициализирован")
             
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё Р°РіРµРЅС‚Р°: {e}")
+            logger.error(f"✗ Ошибка инициализации агента: {e}")
             raise
     
     async def process_patient_message(self, message: str) -> str:
         """
-        РћР±СЂР°Р±РѕС‚РєР° СЃРѕРѕР±С‰РµРЅРёСЏ РѕС‚ РїР°С†РёРµРЅС‚Р°
+        Обработка сообщения от пациента
         
         Args:
-            message: РЎРѕРѕР±С‰РµРЅРёРµ РїР°С†РёРµРЅС‚Р°
+            message: Сообщение пациента
             
         Returns:
-            РћС‚РІРµС‚ Р°РіРµРЅС‚Р°
+            Ответ агента
         """
         if not self.initialized:
-            return "РћС€РёР±РєР°: РђРіРµРЅС‚ РЅРµ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ"
+            return "Ошибка: Агент не инициализирован"
         
-        logger.info(f"рџ‘¤ РџР°С†РёРµРЅС‚: {message}")
+        logger.info(f"👤 Пациент: {message}")
         
-        # Р”РѕР±Р°РІР»СЏРµРј РІ РїР°РјСЏС‚СЊ
+        # Добавляем в память
         self.memory.add_patient_message(message)
         
-        # РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РєР°Рє СЃР±РѕСЂ Р°РЅР°РјРЅРµР·Р°
+        # Обрабатываем как сбор анамнеза
         response = await self._collect_anamnesis(message)
         
-        # Р”РѕР±Р°РІР»СЏРµРј РѕС‚РІРµС‚ РІ РїР°РјСЏС‚СЊ
+        # Добавляем ответ в память
         self.memory.add_agent_message(response, role="interviewer")
         
-        logger.info(f"рџ¤– РђРіРµРЅС‚: {response}")
+        logger.info(f"🤖 Агент: {response}")
         
         return response
     
     async def process_doctor_message(self, message: str) -> str:
         """
-        РћР±СЂР°Р±РѕС‚РєР° СЃРѕРѕР±С‰РµРЅРёСЏ РѕС‚ РІСЂР°С‡Р°
+        Обработка сообщения от врача
         
         Args:
-            message: РЎРѕРѕР±С‰РµРЅРёРµ РІСЂР°С‡Р°
+            message: Сообщение врача
             
         Returns:
-            РћС‚РІРµС‚ Р°РіРµРЅС‚Р°
+            Ответ агента
         """
         if not self.initialized:
-            return "РћС€РёР±РєР°: РђРіРµРЅС‚ РЅРµ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ"
+            return "Ошибка: Агент не инициализирован"
         
-        logger.info(f"рџ‘ЁвЂЌвљ•пёЏ Р’СЂР°С‡: {message}")
+        logger.info(f"👨‍⚕️ Врач: {message}")
         
-        # Р”РѕР±Р°РІР»СЏРµРј РІ РїР°РјСЏС‚СЊ
+        # Добавляем в память
         self.memory.add_doctor_message(message)
         
-        # РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РєРѕРјР°РЅРґСѓ РІСЂР°С‡Р°
+        # Обрабатываем команду врача
         response = await self._process_doctor_command(message)
         
-        logger.info(f"рџ¤– РђРіРµРЅС‚: {response}")
+        logger.info(f"🤖 Агент: {response}")
         
         return response
     
     async def _collect_anamnesis(self, patient_message: str) -> str:
         """
-        РЎР±РѕСЂ Р°РЅР°РјРЅРµР·Р° Сѓ РїР°С†РёРµРЅС‚Р°
+        Сбор анамнеза у пациента
         
         Args:
-            patient_message: РЎРѕРѕР±С‰РµРЅРёРµ РїР°С†РёРµРЅС‚Р°
+            patient_message: Сообщение пациента
             
         Returns:
-            РЎР»РµРґСѓСЋС‰РёР№ РІРѕРїСЂРѕСЃ РёР»Рё Р·Р°РєР»СЋС‡РµРЅРёРµ
+            Следующий вопрос или заключение
         """
-        # РР·РІР»РµРєР°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РёР· СЃРѕРѕР±С‰РµРЅРёСЏ
+        # Извлекаем информацию из сообщения
         extracted = await self.llm_manager.extract_medical_info(patient_message)
         
-        # Р”РѕР±Р°РІР»СЏРµРј РІ Р°РЅР°РјРЅРµР·
+        # Добавляем в анамнез
         if extracted.get("symptoms"):
             self.current_session["symptoms"].extend(extracted["symptoms"])
         
         if extracted.get("patient_info"):
             self.current_session["patient_info"].update(extracted["patient_info"])
         
-        # Р“РµРЅРµСЂРёСЂСѓРµРј СЃР»РµРґСѓСЋС‰РёР№ РІРѕРїСЂРѕСЃ
+        # Генерируем следующий вопрос
         response = await self.llm_manager.generate_response(
             context=self.memory.get_context(),
             task="ask_medical_question",
@@ -147,15 +147,15 @@ class MedicalAgent:
     
     async def _process_doctor_command(self, message: str) -> str:
         """
-        РћР±СЂР°Р±РѕС‚РєР° РєРѕРјР°РЅРґС‹ РІСЂР°С‡Р°
+        Обработка команды врача
         
         Args:
-            message: РљРѕРјР°РЅРґР° РІСЂР°С‡Р°
+            message: Команда врача
             
         Returns:
-            Р РµР·СѓР»СЊС‚Р°С‚ РѕР±СЂР°Р±РѕС‚РєРё
+            Результат обработки
         """
-        # РђРЅР°Р»РёР·РёСЂСѓРµРј РєРѕРјР°РЅРґСѓ
+        # Анализируем команду
         command = await self.llm_manager.extract_command(message)
         
         if command == "summarize":
@@ -165,7 +165,7 @@ class MedicalAgent:
         elif command == "ask_follow_up":
             return await self._generate_followup_question(message)
         else:
-            # РћР±С‹С‡РЅС‹Р№ РѕС‚РІРµС‚
+            # Обычный ответ
             return await self.llm_manager.generate_response(
                 context=self.memory.get_context(),
                 task="general",
@@ -173,7 +173,7 @@ class MedicalAgent:
             )
     
     def _summarize_anamnesis(self) -> str:
-        """Р РµР·СЋРјРµ СЃРѕР±СЂР°РЅРЅРѕРіРѕ Р°РЅР°РјРЅРµР·Р°"""
+        """Резюме собранного анамнеза"""
         summary = {
             "patient": self.current_session.get("patient_info", {}),
             "symptoms": self.current_session.get("symptoms", []),
@@ -182,7 +182,7 @@ class MedicalAgent:
         return json.dumps(summary, ensure_ascii=False, indent=2)
     
     async def _suggest_diagnosis(self) -> str:
-        """РџСЂРµРґР»РѕР¶РµРЅРёРµ РІРѕР·РјРѕР¶РЅС‹С… РґРёР°РіРЅРѕР·РѕРІ"""
+        """Предложение возможных диагнозов"""
         suggestions = await self.medical_logic.suggest_diagnosis(
             symptoms=self.current_session.get("symptoms", []),
             patient_info=self.current_session.get("patient_info", {})
@@ -190,7 +190,7 @@ class MedicalAgent:
         return json.dumps(suggestions, ensure_ascii=False, indent=2)
     
     async def _generate_followup_question(self, context: str) -> str:
-        """Р“РµРЅРµСЂР°С†РёСЏ СѓС‚РѕС‡РЅСЏСЋС‰РµРіРѕ РІРѕРїСЂРѕСЃР°"""
+        """Генерация уточняющего вопроса"""
         return await self.llm_manager.generate_response(
             context=context,
             task="ask_clarification",
@@ -198,7 +198,7 @@ class MedicalAgent:
         )
     
     def get_session_info(self) -> Dict[str, Any]:
-        """РџРѕР»СѓС‡РµРЅРёРµ РёРЅС„РѕСЂРјР°С†РёРё Рѕ С‚РµРєСѓС‰РµРј СЃРµР°РЅСЃРµ"""
+        """Получение информации о текущем сеансе"""
         return {
             "session_id": self.current_session["id"],
             "patient_info": self.current_session["patient_info"],
@@ -207,7 +207,7 @@ class MedicalAgent:
         }
     
     def reset_session(self):
-        """РЎР±СЂРѕСЃ С‚РµРєСѓС‰РµРіРѕ СЃРµР°РЅСЃР°"""
+        """Сброс текущего сеанса"""
         self.current_session = {
             "id": datetime.now().isoformat(),
             "patient_info": {},
@@ -216,5 +216,5 @@ class MedicalAgent:
             "role": AgentRole.INTERVIEWER,
         }
         self.memory.reset()
-        logger.info("вњ“ РЎРµР°РЅСЃ СЃР±СЂРѕС€РµРЅ")
+        logger.info("✓ Сеанс сброшен")
 

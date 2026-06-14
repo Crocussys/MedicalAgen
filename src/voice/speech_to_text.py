@@ -1,5 +1,5 @@
 ﻿"""
-Р Р°СЃРїРѕР·РЅР°РІР°РЅРёРµ СЂРµС‡Рё (Speech-to-Text) СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј Whisper
+Распознавание речи (Speech-to-Text) с использованием Whisper
 Speech Recognition Module
 """
 
@@ -19,31 +19,31 @@ from config import settings
 
 class SpeechRecognizer:
     """
-    Р Р°СЃРїРѕР·РЅР°РІР°РЅРёРµ СЂРµС‡Рё С‡РµСЂРµР· Whisper
+    Распознавание речи через Whisper
     """
     
-    def __init__(self, language: str = "uk"):
+    def __init__(self, language: str = "ru"):
         """
-        РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЂР°СЃРїРѕР·РЅР°РІР°С‚РµР»СЏ
+        Инициализация распознавателя
         
         Args:
-            language: РЇР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ (uk, ru, en)
+            language: Язык распознавания (uk, ru, en)
         """
         self.language = language
         self.model = None
         self.is_listening = False
         self.sample_rate = 16000
         
-        logger.info(f"рџЋ¤ РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Whisper (РјРѕРґРµР»СЊ: {settings.whisper_model_size})")
+        logger.info(f"🎤 Инициализация Whisper (модель: {settings.whisper_model_size})")
         
         try:
             self.model = whisper.load_model(
                 settings.whisper_model_size,
                 device=settings.device
             )
-            logger.info(f"вњ“ Whisper Р·Р°РіСЂСѓР¶РµРЅ СѓСЃРїРµС€РЅРѕ")
+            logger.info(f"✓ Whisper загружен успешно")
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Whisper: {e}")
+            logger.error(f"✗ Ошибка загрузки Whisper: {e}")
             raise
     
     async def record_audio(
@@ -52,22 +52,22 @@ class SpeechRecognizer:
         callback: Optional[Callable] = None
     ) -> Optional[np.ndarray]:
         """
-        Р—Р°РїРёСЃР°С‚СЊ Р°СѓРґРёРѕ СЃ РјРёРєСЂРѕС„РѕРЅР°
+        Записать аудио с микрофона
         
         Args:
-            duration: Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ Р·Р°РїРёСЃРё РІ СЃРµРєСѓРЅРґР°С…
-            callback: Р¤СѓРЅРєС†РёСЏ РѕР±СЂР°С‚РЅРѕРіРѕ РІС‹Р·РѕРІР° РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃС‚Р°С‚СѓСЃР°
+            duration: Длительность записи в секундах
+            callback: Функция обратного вызова для обновления статуса
             
         Returns:
-            РђСѓРґРёРѕРґР°РЅРЅС‹Рµ РІ РІРёРґРµ numpy array РёР»Рё None РµСЃР»Рё РѕС€РёР±РєР°
+            Аудиоданные в виде numpy array или None если ошибка
         """
-        logger.info(f"рџЋ™пёЏ Р—Р°РїРёСЃСЊ Р°СѓРґРёРѕ ({duration} СЃРµРє)...")
+        logger.info(f"🎙️ Запись аудио ({duration} сек)...")
         
         if callback:
             callback("recording", 0)
         
         try:
-            # Р—Р°РїРёСЃС‹РІР°РµРј Р°СѓРґРёРѕ
+            # Записываем аудио
             audio = sd.rec(
                 int(duration * self.sample_rate),
                 samplerate=self.sample_rate,
@@ -75,31 +75,31 @@ class SpeechRecognizer:
                 dtype=np.float32
             )
             
-            # Р–РґРµРј РѕРєРѕРЅС‡Р°РЅРёСЏ Р·Р°РїРёСЃРё
+            # Ждем окончания записи
             sd.wait()
             
             if callback:
                 callback("recording", 100)
             
-            logger.info("вњ“ РђСѓРґРёРѕ Р·Р°РїРёСЃР°РЅРѕ")
+            logger.info("✓ Аудио записано")
             return audio
             
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° Р·Р°РїРёСЃРё Р°СѓРґРёРѕ: {e}")
+            logger.error(f"✗ Ошибка записи аудио: {e}")
             return None
     
     async def recognize_from_file(self, audio_path: str) -> Optional[str]:
         """
-        Р Р°СЃРїРѕР·РЅР°С‚СЊ СЂРµС‡СЊ РёР· С„Р°Р№Р»Р°
+        Распознать речь из файла
         
         Args:
-            audio_path: РџСѓС‚СЊ Рє Р°СѓРґРёРѕС„Р°Р№Р»Сѓ
+            audio_path: Путь к аудиофайлу
             
         Returns:
-            Р Р°СЃРїРѕР·РЅР°РЅРЅС‹Р№ С‚РµРєСЃС‚ РёР»Рё None
+            Распознанный текст или None
         """
         try:
-            logger.info(f"рџЋ¤ Р Р°СЃРїРѕР·РЅР°РІР°РЅРёРµ: {audio_path}")
+            logger.info(f"🎤 Распознавание: {audio_path}")
             
             result = self.model.transcribe(
                 audio_path,
@@ -110,14 +110,14 @@ class SpeechRecognizer:
             text = result.get("text", "").strip()
             
             if text:
-                logger.info(f"вњ“ Р Р°СЃРїРѕР·РЅР°РЅРѕ: {text}")
+                logger.info(f"✓ Распознано: {text}")
             else:
-                logger.warning("вљ пёЏ РўРµРєСЃС‚ РЅРµ СЂР°СЃРїРѕР·РЅР°РЅ")
+                logger.warning("⚠️ Текст не распознан")
             
             return text if text else None
             
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ: {e}")
+            logger.error(f"✗ Ошибка распознавания: {e}")
             return None
     
     async def recognize_from_array(
@@ -125,30 +125,30 @@ class SpeechRecognizer:
         audio_array: np.ndarray
     ) -> Optional[str]:
         """
-        Р Р°СЃРїРѕР·РЅР°С‚СЊ СЂРµС‡СЊ РёР· numpy array
+        Распознать речь из numpy array
         
         Args:
-            audio_array: РђСѓРґРёРѕРґР°РЅРЅС‹Рµ
+            audio_array: Аудиоданные
             
         Returns:
-            Р Р°СЃРїРѕР·РЅР°РЅРЅС‹Р№ С‚РµРєСЃС‚ РёР»Рё None
+            Распознанный текст или None
         """
         try:
-            # РЎРѕС…СЂР°РЅСЏРµРј РІСЂРµРјРµРЅРЅРѕ
+            # Сохраняем временно
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 temp_path = f.name
                 sf.write(temp_path, audio_array, self.sample_rate)
             
-            # Р Р°СЃРїРѕР·РЅР°РµРј
+            # Распознаем
             text = await self.recognize_from_file(temp_path)
             
-            # РЈРґР°Р»СЏРµРј РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р»
+            # Удаляем временный файл
             Path(temp_path).unlink()
             
             return text
             
         except Exception as e:
-            logger.error(f"вњ— РћС€РёР±РєР° СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ РёР· array: {e}")
+            logger.error(f"✗ Ошибка распознавания из array: {e}")
             return None
     
     async def recognize_continuous(
@@ -158,15 +158,15 @@ class SpeechRecognizer:
         callback: Optional[Callable] = None
     ) -> str:
         """
-        РќРµРїСЂРµСЂС‹РІРЅРѕРµ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёРµ СЃРѕ РјРЅРѕР¶РµСЃС‚РІРѕРј С„СЂР°РіРјРµРЅС‚РѕРІ
+        Непрерывное распознавание со множеством фрагментов
         
         Args:
-            duration_per_chunk: Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РєР°Р¶РґРѕРіРѕ С„СЂР°РіРјРµРЅС‚Р°
-            max_chunks: РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ С„СЂР°РіРјРµРЅС‚РѕРІ
-            callback: Р¤СѓРЅРєС†РёСЏ РѕР±СЂР°С‚РЅРѕРіРѕ РІС‹Р·РѕРІР°
+            duration_per_chunk: Длительность каждого фрагмента
+            max_chunks: Максимальное количество фрагментов
+            callback: Функция обратного вызова
             
         Returns:
-            РџРѕР»СѓС‡РµРЅРЅС‹Р№ С‚РµРєСЃС‚
+            Полученный текст
         """
         full_text = []
         
@@ -180,16 +180,16 @@ class SpeechRecognizer:
                 text = await self.recognize_from_array(audio)
                 if text:
                     full_text.append(text)
-                    logger.info(f"Р¤СЂР°РіРјРµРЅС‚ {i+1}: {text}")
+                    logger.info(f"Фрагмент {i+1}: {text}")
             
-            # РџР°СѓР·Р° РјРµР¶РґСѓ С„СЂР°РіРјРµРЅС‚Р°РјРё
+            # Пауза между фрагментами
             await asyncio.sleep(0.5)
         
         return " ".join(full_text)
     
     def set_language(self, language: str):
-        """РЈСЃС‚Р°РЅРѕРІРёС‚СЊ СЏР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ"""
+        """Установить язык распознавания"""
         self.language = language
-        logger.info(f"рџЊђ РЇР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ: {language}")
+        logger.info(f"🌐 Язык распознавания: {language}")
 
 

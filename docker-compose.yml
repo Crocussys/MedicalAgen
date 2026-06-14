@@ -15,6 +15,7 @@ services:
     container_name: medical_agent_ollama
     # Команда для загрузки моделей при первом запуске
     command: serve
+    gpus: all
   
   # Python приложение
   medical_agent:
