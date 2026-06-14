@@ -1,0 +1,45 @@
+# Docker Compose для локального развертывания
+
+version: '3.8'
+
+services:
+  # Ollama LLM сервис
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    container_name: medical_agent_ollama
+    # Команда для загрузки моделей при первом запуске
+    command: serve
+  
+  # Python приложение
+  medical_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - APP_MODE=api
+      - DEVICE=cpu
+    depends_on:
+      - ollama
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    container_name: medical_agent_app
+    command: python main.py --mode api
+
+volumes:
+  ollama_data:
+
+networks:
+  default:
+    name: medical_agent_network

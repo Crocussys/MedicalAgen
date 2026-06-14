@@ -1,0 +1,10 @@
+from pathlib import Path
+p=Path('src/core/__init__.py')
+print(p)
+print('--- bytes ---')
+b = p.read_bytes()
+print(b)
+print('--- repr ---')
+print(repr(b))
+print('--- hex ---')
+print(b.hex())
