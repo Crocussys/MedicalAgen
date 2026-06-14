@@ -1,5 +1,5 @@
-"""
-REST API для медицинского агента
+﻿"""
+REST API РґР»СЏ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ Р°РіРµРЅС‚Р°
 REST API Module
 """
 
@@ -16,28 +16,28 @@ from core.agent import MedicalAgent
 from config import settings
 
 
-# Модели запроса/ответа
+# РњРѕРґРµР»Рё Р·Р°РїСЂРѕСЃР°/РѕС‚РІРµС‚Р°
 class PatientMessageRequest(BaseModel):
-    """Запрос сообщения от пациента"""
+    """Р—Р°РїСЂРѕСЃ СЃРѕРѕР±С‰РµРЅРёСЏ РѕС‚ РїР°С†РёРµРЅС‚Р°"""
     message: str = Field(..., min_length=1, max_length=1000)
     session_id: Optional[str] = None
 
 
 class DoctorMessageRequest(BaseModel):
-    """Запрос сообщения от врача"""
+    """Р—Р°РїСЂРѕСЃ СЃРѕРѕР±С‰РµРЅРёСЏ РѕС‚ РІСЂР°С‡Р°"""
     message: str = Field(..., min_length=1, max_length=1000)
     command: Optional[str] = None
 
 
 class MessageResponse(BaseModel):
-    """Ответ агента"""
+    """РћС‚РІРµС‚ Р°РіРµРЅС‚Р°"""
     response: str
     session_id: str
     timestamp: str
 
 
 class SessionInfoResponse(BaseModel):
-    """Информация о сеансе"""
+    """РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃРµР°РЅСЃРµ"""
     session_id: str
     patient_info: dict
     symptoms_count: int
@@ -45,11 +45,11 @@ class SessionInfoResponse(BaseModel):
 
 
 def create_app(agent: MedicalAgent) -> FastAPI:
-    """Создать FastAPI приложение"""
+    """РЎРѕР·РґР°С‚СЊ FastAPI РїСЂРёР»РѕР¶РµРЅРёРµ"""
     
     app = FastAPI(
         title="Medical AI Assistant",
-        description="REST API для медицинского ИИ-помощника",
+        description="REST API РґР»СЏ РјРµРґРёС†РёРЅСЃРєРѕРіРѕ РР-РїРѕРјРѕС‰РЅРёРєР°",
         version="1.0.0"
     )
     
@@ -62,22 +62,22 @@ def create_app(agent: MedicalAgent) -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Маршруты
+    # РњР°СЂС€СЂСѓС‚С‹
     
     @app.get("/health")
     async def health():
-        """Проверка здоровья приложения"""
+        """РџСЂРѕРІРµСЂРєР° Р·РґРѕСЂРѕРІСЊСЏ РїСЂРёР»РѕР¶РµРЅРёСЏ"""
         return {"status": "ok", "agent_initialized": agent.initialized}
     
     @app.get("/session")
     async def get_session():
-        """Получить информацию о текущем сеансе"""
+        """РџРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚РµРєСѓС‰РµРј СЃРµР°РЅСЃРµ"""
         info = agent.get_session_info()
         return SessionInfoResponse(**info)
     
     @app.post("/message/patient")
     async def process_patient_message(request: PatientMessageRequest):
-        """Обработать сообщение пациента"""
+        """РћР±СЂР°Р±РѕС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РїР°С†РёРµРЅС‚Р°"""
         try:
             response = await agent.process_patient_message(request.message)
             return MessageResponse(
@@ -91,7 +91,7 @@ def create_app(agent: MedicalAgent) -> FastAPI:
     
     @app.post("/message/doctor")
     async def process_doctor_message(request: DoctorMessageRequest):
-        """Обработать сообщение врача"""
+        """РћР±СЂР°Р±РѕС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РІСЂР°С‡Р°"""
         try:
             response = await agent.process_doctor_message(request.message)
             return MessageResponse(
@@ -105,19 +105,19 @@ def create_app(agent: MedicalAgent) -> FastAPI:
     
     @app.post("/session/reset")
     async def reset_session():
-        """Сбросить сеанс"""
+        """РЎР±СЂРѕСЃРёС‚СЊ СЃРµР°РЅСЃ"""
         agent.reset_session()
         return {"status": "reset"}
     
     @app.get("/session/history")
     async def get_history(limit: int = 20):
-        """Получить историю разговора"""
+        """РџРѕР»СѓС‡РёС‚СЊ РёСЃС‚РѕСЂРёСЋ СЂР°Р·РіРѕРІРѕСЂР°"""
         all_messages = agent.memory.get_full_conversation()
         return {"messages": all_messages[-limit:]}
     
     @app.websocket("/ws/chat")
     async def websocket_chat(websocket: WebSocket):
-        \"\"\"WebSocket для реального времени чата\"\"\"
+        """WebSocket РґР»СЏ СЂРµР°Р»СЊРЅРѕРіРѕ РІСЂРµРјРµРЅРё С‡Р°С‚Р°"""
         await websocket.accept()
         try:
             while True:
@@ -129,13 +129,13 @@ def create_app(agent: MedicalAgent) -> FastAPI:
                     await websocket.send_json({"error": "Empty message"})
                     continue
                 
-                # Обрабатываем сообщение
+                # РћР±СЂР°Р±Р°С‚С‹РІР°РµРј СЃРѕРѕР±С‰РµРЅРёРµ
                 if role == "patient":
                     response = await agent.process_patient_message(message)
                 else:
                     response = await agent.process_doctor_message(message)
                 
-                # Отправляем ответ
+                # РћС‚РїСЂР°РІР»СЏРµРј РѕС‚РІРµС‚
                 await websocket.send_json({
                     "response": response,
                     "session_id": agent.current_session["id"],
@@ -150,21 +150,22 @@ def create_app(agent: MedicalAgent) -> FastAPI:
 
 
 def start_api_server(agent: MedicalAgent, host: str = "0.0.0.0", port: int = 8000):
-    \"\"\"Запустить REST API сервер\"\"\"
+    """Р—Р°РїСѓСЃС‚РёС‚СЊ REST API СЃРµСЂРІРµСЂ"""
     app = create_app(agent)
     
-    logger.info(f"🚀 Запуск API сервера на {host}:{port}")
+    logger.info(f"рџљЂ Р—Р°РїСѓСЃРє API СЃРµСЂРІРµСЂР° РЅР° {host}:{port}")
     print(f"""
-    ╔═══════════════════════════════════════╗
-    ║   API Documentation                   ║
-    ║   http://{host}:{port}/docs          ║
-    ║   http://{host}:{port}/redoc          ║
-    ╚═══════════════════════════════════════╝
-    \"\"\")
+    в•”в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•—
+    в•‘   API Documentation                   в•‘
+    в•‘   http://{host}:{port}/docs          в•‘
+    в•‘   http://{host}:{port}/redoc          в•‘
+    в•љв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ќ
+    """)
     
     uvicorn.run(
         app,
         host=host,
         port=port,
-        log_level=\"info\"
+        log_level="info"
     )
+

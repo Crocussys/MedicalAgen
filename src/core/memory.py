@@ -1,5 +1,5 @@
-"""
-Управление памятью разговора
+﻿"""
+РЈРїСЂР°РІР»РµРЅРёРµ РїР°РјСЏС‚СЊСЋ СЂР°Р·РіРѕРІРѕСЂР°
 Conversation Memory Management
 """
 
@@ -11,7 +11,7 @@ import json
 
 @dataclass
 class Message:
-    """Сообщение в разговоре"""
+    """РЎРѕРѕР±С‰РµРЅРёРµ РІ СЂР°Р·РіРѕРІРѕСЂРµ"""
     role: str  # "patient", "doctor", "agent"
     content: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -22,44 +22,44 @@ class Message:
 
 class ConversationMemory:
     """
-    Управление памятью разговора между агентом, врачом и пациентом
+    РЈРїСЂР°РІР»РµРЅРёРµ РїР°РјСЏС‚СЊСЋ СЂР°Р·РіРѕРІРѕСЂР° РјРµР¶РґСѓ Р°РіРµРЅС‚РѕРј, РІСЂР°С‡РѕРј Рё РїР°С†РёРµРЅС‚РѕРј
     """
     
     def __init__(self, max_history: int = 100):
         """
-        Инициализация памяти
+        РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°РјСЏС‚Рё
         
         Args:
-            max_history: Максимальное количество сообщений в памяти
+            max_history: РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃРѕРѕР±С‰РµРЅРёР№ РІ РїР°РјСЏС‚Рё
         """
         self.conversation: List[Message] = []
         self.max_history = max_history
-        self.context_window = 10  # Количество последних сообщений для контекста
+        self.context_window = 10  # РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕСЃР»РµРґРЅРёС… СЃРѕРѕР±С‰РµРЅРёР№ РґР»СЏ РєРѕРЅС‚РµРєСЃС‚Р°
     
     def add_patient_message(self, content: str) -> None:
-        """Добавить сообщение пациента"""
+        """Р”РѕР±Р°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РїР°С†РёРµРЅС‚Р°"""
         self.conversation.append(Message(role="patient", content=content))
         self._trim_history()
     
     def add_doctor_message(self, content: str) -> None:
-        """Добавить сообщение врача"""
+        """Р”РѕР±Р°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РІСЂР°С‡Р°"""
         self.conversation.append(Message(role="doctor", content=content))
         self._trim_history()
     
     def add_agent_message(self, content: str, role: str = "agent") -> None:
-        """Добавить сообщение агента"""
+        """Р”РѕР±Р°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ Р°РіРµРЅС‚Р°"""
         self.conversation.append(Message(role=role, content=content))
         self._trim_history()
     
     def get_context(self, window_size: int = None) -> str:
         """
-        Получить контекст для передачи в LLM
+        РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС‚РµРєСЃС‚ РґР»СЏ РїРµСЂРµРґР°С‡Рё РІ LLM
         
         Args:
-            window_size: Количество последних сообщений (по умолчанию context_window)
+            window_size: РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕСЃР»РµРґРЅРёС… СЃРѕРѕР±С‰РµРЅРёР№ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ context_window)
             
         Returns:
-            Отформатированный контекст
+            РћС‚С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРЅС‹Р№ РєРѕРЅС‚РµРєСЃС‚
         """
         if window_size is None:
             window_size = self.context_window
@@ -69,10 +69,10 @@ class ConversationMemory:
         context_parts = []
         for msg in relevant_messages:
             role_name = {
-                "patient": "👤 Пациент",
-                "doctor": "👨‍⚕️ Врач",
-                "agent": "🤖 Агент",
-                "interviewer": "🤖 Агент (интервью)"
+                "patient": "рџ‘¤ РџР°С†РёРµРЅС‚",
+                "doctor": "рџ‘ЁвЂЌвљ•пёЏ Р’СЂР°С‡",
+                "agent": "рџ¤– РђРіРµРЅС‚",
+                "interviewer": "рџ¤– РђРіРµРЅС‚ (РёРЅС‚РµСЂРІСЊСЋ)"
             }.get(msg.role, msg.role)
             
             context_parts.append(f"{role_name}: {msg.content}")
@@ -80,20 +80,20 @@ class ConversationMemory:
         return "\n".join(context_parts)
     
     def get_full_conversation(self) -> List[Dict[str, Any]]:
-        """Получить полный разговор"""
+        """РџРѕР»СѓС‡РёС‚СЊ РїРѕР»РЅС‹Р№ СЂР°Р·РіРѕРІРѕСЂ"""
         return [msg.to_dict() for msg in self.conversation]
     
     def get_patient_messages(self) -> List[str]:
-        """Получить все сообщения пациента"""
+        """РџРѕР»СѓС‡РёС‚СЊ РІСЃРµ СЃРѕРѕР±С‰РµРЅРёСЏ РїР°С†РёРµРЅС‚Р°"""
         return [msg.content for msg in self.conversation if msg.role == "patient"]
     
     def get_symptoms_context(self) -> str:
-        """Получить контекст симптомов из разговора"""
+        """РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС‚РµРєСЃС‚ СЃРёРјРїС‚РѕРјРѕРІ РёР· СЂР°Р·РіРѕРІРѕСЂР°"""
         patient_msgs = self.get_patient_messages()
         return " ".join(patient_msgs)
     
     def get_summary(self) -> Dict[str, Any]:
-        """Получить резюме разговора"""
+        """РџРѕР»СѓС‡РёС‚СЊ СЂРµР·СЋРјРµ СЂР°Р·РіРѕРІРѕСЂР°"""
         return {
             "total_messages": len(self.conversation),
             "patient_messages": len([m for m in self.conversation if m.role == "patient"]),
@@ -104,17 +104,17 @@ class ConversationMemory:
         }
     
     def _trim_history(self) -> None:
-        """Обрезка истории при превышении лимита"""
+        """РћР±СЂРµР·РєР° РёСЃС‚РѕСЂРёРё РїСЂРё РїСЂРµРІС‹С€РµРЅРёРё Р»РёРјРёС‚Р°"""
         if len(self.conversation) > self.max_history:
-            # Удаляем самые старые сообщения
+            # РЈРґР°Р»СЏРµРј СЃР°РјС‹Рµ СЃС‚Р°СЂС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ
             self.conversation = self.conversation[-self.max_history:]
     
     def reset(self) -> None:
-        """Полный сброс памяти"""
+        """РџРѕР»РЅС‹Р№ СЃР±СЂРѕСЃ РїР°РјСЏС‚Рё"""
         self.conversation = []
     
     def export_to_json(self) -> str:
-        """Экспорт разговора в JSON"""
+        """Р­РєСЃРїРѕСЂС‚ СЂР°Р·РіРѕРІРѕСЂР° РІ JSON"""
         return json.dumps(
             [msg.to_dict() for msg in self.conversation],
             ensure_ascii=False,
@@ -122,6 +122,8 @@ class ConversationMemory:
         )
     
     def export_to_file(self, filepath: str) -> None:
-        """Экспорт разговора в файл"""
+        """Р­РєСЃРїРѕСЂС‚ СЂР°Р·РіРѕРІРѕСЂР° РІ С„Р°Р№Р»"""
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(self.export_to_json())
+
+
